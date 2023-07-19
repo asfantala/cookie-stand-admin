@@ -41,9 +41,9 @@ function Header() {
     )
 }
 
-function Form({ onSubmit }) {
+function Form(props) {
     return (
-        <form className="flex flex-col items-center justify-center h-screen"  onSubmit={onSubmit}>
+        <form className="flex flex-col items-center justify-center h-screen"  onSubmit={props.onSubmit}>
             <div className="bg-green-300 shadow-md rounded-lg p-4">
                 <h2 className="text-2xl font-bold mb-4">Create Cookie Stand</h2>
                 <div className="mb-4">
@@ -74,12 +74,12 @@ function Form({ onSubmit }) {
     );
 }
 
-function Placeholder({ lastCookieStand }) {
+function Placeholder(props) {
     //  placeholder component showing JSON string of last created Cookie Stand.
     // i asked here chatgpt how to change the result to be as JSON format 
     return (
         <div className="bg-green-300 shadow-md rounded-lg p-4">
-            <pre>{JSON.stringify(lastCookieStand, null, 2)}</pre>
+            <pre>{JSON.stringify(props.lastCookieStand, null, 2)}</pre>
         </div>
     );
 }
