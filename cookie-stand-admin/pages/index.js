@@ -11,45 +11,64 @@ function Home() {
   const [cookieStands, setCookieStands] = useState([]);
   const { tokens, login, user } = useAuth();
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch(baseUrl + 'api/v1/cookiestands/', {
+          headers: {
+            Authorization: `Bearer ${tokens?.access}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCookieStands(data); // Update the state with fetched data
+        } else {
+          console.error('Failed to fetch data:', response);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+    fetchData();
+  }, [tokens?.access]);
 
   const handleSubmit = async (event) => {
-  event.preventDefault();
-  const form = new FormData(event.target);
-  const entry = {
-    id: cookieStands.length + 1,
-    location: form.get('location'),
-    minCustomers: form.get('minCustomers'),
-    maxCustomers: form.get('maxCustomers'),
-    avgCookies: form.get('avgCookies'),
-    hourly_sales: hourlySalesData,
+    event.preventDefault();
+    const form = new FormData(event.target);
+    const entry = {
+      location: form.get('location'),
+      minCustomers: form.get('minCustomers'),
+      maxCustomers: form.get('maxCustomers'),
+      avgCookies: form.get('avgCookies'),
+      hourly_sales: hourlySalesData,
+    };
+
+    try {
+      const response = await fetch(baseUrl + 'api/v1/cookiestands/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokens?.access}`,
+        },
+        body: JSON.stringify(entry),
+      });
+
+      if (response.ok) {
+        const data = await response.json(); // Get the newly created entry from the server response
+        setCookieStands([...cookieStands, data]); // Update the state with the actual data from the server
+
+        updateCookies();
+      } else {
+        console.error('Failed to create entry:', response);
+      }
+    } catch (error) {
+      console.error('Error creating entry:', error);
+    }
   };
 
-  try {
-    const response = await fetch(baseUrl + 'api/v1/cookiestands/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tokens?.access}`,
-      },
-      body: JSON.stringify(entry),
-    });
-
-    // Check if the request was successful (status code 2xx)
-    if (response.ok) {
-      setCookieStands([...cookieStands, entry]);
-
-      // Fetch the updated data after creating a new entry
-      updateCookies();
-    } else {
-      console.error('Failed to create entry:', response);
-    }
-  } catch (error) {
-    console.error('Error creating entry:', error);
-  }
-};
 
 
- 
+
 
   const handleDelete = async (id) => {
     try {
@@ -81,7 +100,11 @@ function Home() {
           <Header />
           <main className="container mx-auto p-4">
             <Form onSubmit={handleSubmit} />
-            <ReportTable reports={cookieStands} onDelete={handleDelete} />
+            {cookieStands.length > 0 ? (
+              <ReportTable reports={cookieStands} onDelete={handleDelete} />
+            ) : (
+              <h2 className="text-2xl">No Cookie Stands Available</h2>
+            )}
           </main>
           <Footer numLocations={numLocations} />
         </>
